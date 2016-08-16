@@ -39,6 +39,8 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer {
 
     private Vector<Texture> mTextures;//纹理
 
+    private float oldX = 0;
+    private float oldY = 0;
 
     public ImageTargetRenderer(ImageTargets activity,
                                ApplicationSession session) {
@@ -77,7 +79,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer {
 
     // Function for initializing the renderer.
     private void initRendering() {
-        ring = new Ring(0.2f, 0.7f);
+        ring = new Ring(0.3f, 0.7f);
 
         mRenderer = Renderer.getInstance();
 
@@ -93,6 +95,7 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer {
 
     // The render function.
     private void renderFrame() {
+        //清楚颜色缓冲和深度缓冲
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
         State state = mRenderer.begin();
@@ -104,16 +107,12 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer {
         int[] viewport = vuforiaAppSession.getViewport();
         GLES20.glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
 
-        // handle face culling, we need to detect if we are using reflection
-        // to determine the direction of the culling
-        GLES20.glDisable(GLES20.GL_CULL_FACE);
-        GLES20.glCullFace(GLES20.GL_BACK);
         if (Renderer.getInstance().getVideoBackgroundConfig().getReflection() == VIDEO_BACKGROUND_REFLECTION.VIDEO_BACKGROUND_REFLECTION_ON)
             GLES20.glFrontFace(GLES20.GL_CW); // Front camera
         else
             GLES20.glFrontFace(GLES20.GL_CCW); // Back camera
 
-        // did we find any trackables this frame?
+
         for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++) {
             TrackableResult result = state.getTrackableResult(tIdx);
             Matrix34F pose = result.getPose();
@@ -121,13 +120,29 @@ public class ImageTargetRenderer implements GLSurfaceView.Renderer {
             printUserData(trackable);
             Matrix44F modelViewMatrix_Vuforia = Tool
                     .convertPose2GLMatrix(pose);
+//            float data[] = new float[16];
+//            for (int i = 0; i < 16; i++) {
+//                data[i] = modelViewMatrix_Vuforia.getData()[i]*50;
+//            }
+//            modelViewMatrix_Vuforia.setData(data);
             float[] modelViewMatrix = modelViewMatrix_Vuforia.getData();
-            ring.drawModel(modelViewMatrix, vuforiaAppSession, 0f, 0f, pose);
+            float[] touch = mActivity.getTouchStart();
+            float startX = touch[0];
+            float startY = touch[1];
+            if (startX == oldX && startY == oldY) {
+                Log.e(LOGTAG, "等于++++++++++++++++++=");
+                startX = 0.0f;
+                startY = 0.0f;
+            }
+            ring.drawModel(modelViewMatrix, vuforiaAppSession, startX, startY, pose);
+            if (startX != 0 && startY != 0) {
+                oldX = startX;
+                oldY = startY;
+            }
 
         }
 
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-
         mRenderer.end();
     }
 

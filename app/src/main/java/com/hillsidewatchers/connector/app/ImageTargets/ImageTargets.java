@@ -57,8 +57,6 @@ public class ImageTargets extends Activity implements ApplicationControl {
 
     private DataSet mCurrentDataset;
     private int mCurrentDatasetSelectionIndex = 0;
-    private int mStartDatasetsIndex = 0;
-    private int mDatasetsNumber = 0;
     private ArrayList<String> mDatasetStrings = new ArrayList<String>();
 
     // Our OpenGL view:
@@ -73,11 +71,8 @@ public class ImageTargets extends Activity implements ApplicationControl {
     private Vector<Texture> mTextures;
 
     private boolean mSwitchDatasetAsap = false;
-    private boolean mFlash = false;
-    private boolean mContAutofocus = false;
     private boolean mExtendedTracking = false;
 
-    private View mFlashOptionView;
 
     private RelativeLayout mUILayout;
 
@@ -90,6 +85,11 @@ public class ImageTargets extends Activity implements ApplicationControl {
     boolean mIsDroidDevice = false;
     public static int screenWidth;
     public static int screenHeight;
+
+    private float touchStartX = 0;
+    private float touchStartY = 0;
+    private float touchEndX = 0;
+    private float touchEndY = 0;
 
     // Called when the activity first starts or the user navigates back to an
     // activity.
@@ -115,6 +115,25 @@ public class ImageTargets extends Activity implements ApplicationControl {
 
     }
 
+    private void setTouchStart(float x, float y) {
+        touchStartX = x;
+        touchStartY = y;
+    }
+
+    private void setTouchEnd(float x, float y) {
+        touchEndX = x;
+        touchEndY = y;
+    }
+
+    public float[] getTouchStart() {
+        return new float[]{touchStartX, touchStartY};
+    }
+
+    public float[] getTouchEnd() {
+        return new float[]{touchEndX, touchEndY};
+    }
+
+
     // Process Single Tap event to trigger autofocus
     private class GestureListener extends
             GestureDetector.SimpleOnGestureListener {
@@ -124,14 +143,16 @@ public class ImageTargets extends Activity implements ApplicationControl {
 
         @Override
         public boolean onDown(MotionEvent e) {
+            setTouchStart(e.getX(),e.getY());
             return true;
         }
 
-
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            // Generates a Handler to trigger autofocus
-            // after 1 second
+
+            setTouchEnd(e.getX(),e.getY());
+
+            //自动聚焦
             autofocusHandler.postDelayed(new Runnable() {
                 public void run() {
                     boolean result = CameraDevice.getInstance().setFocusMode(
@@ -210,15 +231,15 @@ public class ImageTargets extends Activity implements ApplicationControl {
             mGlView.onPause();
         }
 
-        // Turn off the flash
-        if (mFlashOptionView != null && mFlash) {
-            // OnCheckedChangeListener is called upon changing the checked state
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                ((Switch) mFlashOptionView).setChecked(false);
-            } else {
-                ((CheckBox) mFlashOptionView).setChecked(false);
-            }
-        }
+//        // Turn off the flash
+//        if (mFlashOptionView != null && mFlash) {
+//            // OnCheckedChangeListener is called upon changing the checked state
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+//                ((Switch) mFlashOptionView).setChecked(false);
+//            } else {
+//                ((CheckBox) mFlashOptionView).setChecked(false);
+//            }
+//        }
 
         try {
             vuforiaAppSession.pauseAR();
@@ -376,9 +397,7 @@ public class ImageTargets extends Activity implements ApplicationControl {
             boolean result = CameraDevice.getInstance().setFocusMode(
                     CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO);
 
-            if (result)
-                mContAutofocus = true;
-            else
+            if (!result)
                 Log.e(LOGTAG, "Unable to enable continuous autofocus");
 
         } else {

@@ -37,7 +37,7 @@ public class Ring {
     //每个点坐标数
     private static final int COORDS_PER_VERTEX = 2;
     //总坐标数(顶点数*每个顶点的坐标数）
-    private final int COORDS_COUNT = 5;
+    private final int COORDS_COUNT = 40;
     private int mPositionHandle;
     private int mColorHandle;
     //顶点个数
@@ -48,7 +48,6 @@ public class Ring {
     private FloatBuffer vertexBuffer;
     //外、内环颜色数组
     float color[] = {0.63671875f, 0.76953125f, 0.22265625f, 0.5f};
-    float color2[] = {0.0f, 1f, 0.0f, 1.0f};
 
     //存储坐标的链表
     List<Float> coordsList = new ArrayList<>();
@@ -60,7 +59,7 @@ public class Ring {
     //内外圆之间的比率
     float rate;
 
-    static private float scale = 80.0f;
+    static private int scale = 80;
     static private float translate = 0.0f;
     private int shaderProgramID = 0;
     private int vertexHandle = 0;
@@ -110,7 +109,7 @@ public class Ring {
         int fragmentShader = Shader.getFragmentShader();
 
         shaderProgramID = SampleUtils.createProgramFromShaderSrc(
-                Shader.CUBE_MESH_VERTEX_SHADER,Shader.fragmentShaderCode);
+                Shader.CUBE_MESH_VERTEX_SHADER, Shader.fragmentShaderCode);
         vertexHandle = GLES20.glGetAttribLocation(shaderProgramID,
                 "vertexPosition");
         mvpMatrixHandle = GLES20.glGetUniformLocation(shaderProgramID,
@@ -165,21 +164,50 @@ public class Ring {
         int xOffset = (screenWidth - config.getSize().getData()[0]) / 2 + config.getPosition().getData()[0];
         int yOffset = (screenHeight - config.getSize().getData()[1]) / 2 + config.getPosition().getData()[1];
 
+        float maxX = 0;
+        float maxY = 0;
+        float minX = 0;
+        float minY = 0;
+        Log.e("Ring", "画一次");
         for (int i = 0; i < ringCoordsArr.length; i += 2) {
-            Log.e("Ring", "一个坐标");
             CameraCalibration calibration = CameraDevice.getInstance().getCameraCalibration();
             float temp[] = new float[]{ringCoordsArr[i], ringCoordsArr[i + 1], 0.0f};
             Vec2F vec2F = Tool.projectPoint(calibration, pose, new Vec3F(temp));
             float rotatedX = videoMode.getHeight() - vec2F.getData()[1];
             float rotatedY = vec2F.getData()[0];
-            float xxx = rotatedX * config.getSize().getData()[0] / videoMode.getHeight() + xOffset;
-            float yyy = rotatedY * config.getSize().getData()[1] / videoMode.getWidth() + yOffset;
-            Log.e("Ring", "" + xxx + "++" + yyy);
+            float screenCoordinateX = rotatedX * config.getSize().getData()[0] / videoMode.getHeight() + xOffset * 50;
+            float screenCoordinateY = rotatedY * config.getSize().getData()[1] / videoMode.getWidth() + yOffset * 50;
+//            Log.e("Ring", "" + screenCoordinateX + "++" + screenCoordinateY);
+            if (i == 0) {
+                minX = screenCoordinateX;
+                minY = screenCoordinateY;
+            }
+            if (screenCoordinateX > maxX)
+                maxX = screenCoordinateX;
+            if (screenCoordinateY > maxY)
+                maxY = screenCoordinateY;
+            if (screenCoordinateX < minX)
+                minX = screenCoordinateX;
+            if (screenCoordinateY < minY)
+                minY = screenCoordinateY;
+
         }
+
+        float ringCenterX = (maxX + minX) / 2;
+        float ringCenterY = (maxY + minY) / 2;
+        float ringRadius = ((maxX - minX) / 2 + (maxY - minY) / 2) / 2 * scale;
+
+//        Log.e("x范围：", "" + minX + "~~~" + maxX);
+//        Log.e("y范围：", "" + minY + "~~~" + maxY);
+//        Log.e("中心点：", "" + ringCenterX + "," + ringCenterY);
+//        Log.e("半径：", "" + radius);
+
 
         //手指
         if (startX != 0 || startY != 0) {
             Log.e("手指触碰点", "" + startX + "--" + startY);
+            if (startX <= ringCenterX + ringRadius && startX >= ringCenterX - ringRadius && startY <= ringCenterY + ringRadius && startY >= ringCenterY - ringRadius)
+                Log.e("手指点", "在图形中");
         }
 
 

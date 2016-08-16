@@ -187,7 +187,7 @@ public class FrameMarkerRenderer implements GLSurfaceView.Renderer {
 //                        startX = startX == getStartX() ? 0 : getStartX();
 //                    if (startY != 0)
 //                        startY = startY == getStartY() ? 0 : getStartY();
-                    ring.drawModel(modelViewMatrix, vuforiaAppSession, getStartX(), getStartY(), pose);
+//                    ring.drawModel(modelViewMatrix, vuforiaAppSession,mActivity.get, pose);
 //                    line.draw(mProjectionMatrix);
                     break;
             }
