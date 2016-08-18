@@ -116,7 +116,7 @@ public class FrameMarkers extends Activity implements ApplicationControl {
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             endX = e2.getX();
             endY = e2.getY();
-            mRenderer.setEndCoor(endX, endY);
+//            mRenderer.setEndCoor(endX, endY);
             return true;
         }
 

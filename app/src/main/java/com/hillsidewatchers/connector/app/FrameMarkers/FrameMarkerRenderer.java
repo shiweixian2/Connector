@@ -80,9 +80,6 @@ public class FrameMarkerRenderer implements GLSurfaceView.Renderer {
         return startY;
     }
 
-    public void setEndCoor(float endX, float endY) {
-//        line.setEndcoor(endX, endY);
-    }
 
 
     // Called when the surface is created or recreated.

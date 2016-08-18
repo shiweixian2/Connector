@@ -59,7 +59,7 @@ public class Ring {
     //内外圆之间的比率
     float rate;
 
-    static private int scale = 80;
+    //    static private int scale = 80;
     static private float translate = 0.0f;
     private int shaderProgramID = 0;
     private int vertexHandle = 0;
@@ -126,14 +126,14 @@ public class Ring {
     }
 
 
-    public void drawModel(float[] modelViewMatrix, ApplicationSession vuforiaAppSession, float startX, float startY, Matrix34F pose) {
+    public float[] drawModel(float[] modelViewMatrix, Renderer renderer, ApplicationSession vuforiaAppSession, Matrix34F pose, int scale, int id) {
         float[] mvpMatrix = new float[16];
 //        //平移
-        Matrix.translateM(modelViewMatrix, 0, translate,
-                translate, 0.f);
+//        Matrix.translateM(modelViewMatrix, 0, translate,
+//                translate, 0.f);
 //        //缩放
-        Matrix.scaleM(modelViewMatrix, 0, scale, scale,
-                scale);
+//        Matrix.scaleM(modelViewMatrix, 0, scale, scale,
+//                scale);
         //合并矩阵
         Matrix.multiplyMM(mvpMatrix, 0, vuforiaAppSession
                 .getProjectionMatrix().getData(), 0, modelViewMatrix, 0);
@@ -160,9 +160,9 @@ public class Ring {
         int screenWidth = ImageTargets.screenWidth;
         int screenHeight = ImageTargets.screenHeight;
         VideoMode videoMode = CameraDevice.getInstance().getVideoMode(CameraDevice.MODE.MODE_DEFAULT);
-        VideoBackgroundConfig config = Renderer.getInstance().getVideoBackgroundConfig();
+        VideoBackgroundConfig config = renderer.getVideoBackgroundConfig();
         int xOffset = (screenWidth - config.getSize().getData()[0]) / 2 + config.getPosition().getData()[0];
-        int yOffset = (screenHeight - config.getSize().getData()[1]) / 2 + config.getPosition().getData()[1];
+        int yOffset = (screenHeight - config.getSize().getData()[1]) / 2 - config.getPosition().getData()[1];
 
         float maxX = 0;
         float maxY = 0;
@@ -172,11 +172,12 @@ public class Ring {
         for (int i = 0; i < ringCoordsArr.length; i += 2) {
             CameraCalibration calibration = CameraDevice.getInstance().getCameraCalibration();
             float temp[] = new float[]{ringCoordsArr[i], ringCoordsArr[i + 1], 0.0f};
-            Vec2F vec2F = Tool.projectPoint(calibration, pose, new Vec3F(temp));
-            float rotatedX = videoMode.getHeight() - vec2F.getData()[1];
-            float rotatedY = vec2F.getData()[0];
-            float screenCoordinateX = rotatedX * config.getSize().getData()[0] / videoMode.getHeight() + xOffset * 50;
-            float screenCoordinateY = rotatedY * config.getSize().getData()[1] / videoMode.getWidth() + yOffset * 50;
+
+            Vec2F cameraPoint = Tool.projectPoint(calibration, pose, new Vec3F(temp));
+            float rotatedX = videoMode.getHeight() - cameraPoint.getData()[1];
+            float rotatedY = cameraPoint.getData()[0];
+            float screenCoordinateX = rotatedX * config.getSize().getData()[0] / videoMode.getHeight() + xOffset;
+            float screenCoordinateY = rotatedY * config.getSize().getData()[1] / videoMode.getWidth() - yOffset;
 //            Log.e("Ring", "" + screenCoordinateX + "++" + screenCoordinateY);
             if (i == 0) {
                 minX = screenCoordinateX;
@@ -197,6 +198,8 @@ public class Ring {
         float ringCenterY = (maxY + minY) / 2;
         float ringRadius = ((maxX - minX) / 2 + (maxY - minY) / 2) / 2 * scale;
 
+        return new float[]{ringCenterX, ringCenterY, ringRadius};
+
 //        Log.e("x范围：", "" + minX + "~~~" + maxX);
 //        Log.e("y范围：", "" + minY + "~~~" + maxY);
 //        Log.e("中心点：", "" + ringCenterX + "," + ringCenterY);
@@ -204,11 +207,11 @@ public class Ring {
 
 
         //手指
-        if (startX != 0 || startY != 0) {
-            Log.e("手指触碰点", "" + startX + "--" + startY);
-            if (startX <= ringCenterX + ringRadius && startX >= ringCenterX - ringRadius && startY <= ringCenterY + ringRadius && startY >= ringCenterY - ringRadius)
-                Log.e("手指点", "在图形中");
-        }
+//        if (startX != 0 || startY != 0) {
+//            Log.e("手指触碰点", "" + startX + "--" + startY);
+//            if (startX <= ringCenterX + ringRadius && startX >= ringCenterX - ringRadius && startY <= ringCenterY + ringRadius && startY >= ringCenterY - ringRadius)
+//                Log.e("手指点", "在图形中");
+//        }
 
 
     }

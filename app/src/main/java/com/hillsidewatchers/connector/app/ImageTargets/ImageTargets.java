@@ -143,14 +143,21 @@ public class ImageTargets extends Activity implements ApplicationControl {
 
         @Override
         public boolean onDown(MotionEvent e) {
-            setTouchStart(e.getX(),e.getY());
-            return true;
+//            setTouchStart(e.getX(),e.getY());
+            return super.onDown(e);
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            setTouchStart(e1.getX(),e1.getY());
+            setTouchEnd(e2.getX(),e2.getY());
+            return super.onScroll(e1, e2, distanceX, distanceY);
         }
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
 
-            setTouchEnd(e.getX(),e.getY());
+//            setTouchEnd(e.getX(),e.getY());
 
             //自动聚焦
             autofocusHandler.postDelayed(new Runnable() {

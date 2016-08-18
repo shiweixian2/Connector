@@ -41,6 +41,25 @@ public class Shader {
                     "  gl_FragColor = vColor;" +
                     "}";
 
+    public static final String tempFrag =
+            "precision mediump float;\n" +
+                    "varying vec2 vTextureCoord; \n" +
+                    "uniform sampler2D sTexture;\n" +
+                    "void main()                         \n" +
+                    "{           \n" +
+                    "   gl_FragColor = texture2D(sTexture, vTextureCoord); \n" +
+                    "}              ";
+
+    public static final String tempVer = "uniform mat4 uMVPMatrix; \n" +
+            "attribute vec3 aPosition; \n" +
+            "attribute vec2 aTexCoor;    \n" +
+            "varying vec2 vTextureCoord; \n" +
+            "void main()     \n" +
+            "{                            \t\t\n" +
+            "   gl_Position = uMVPMatrix * vec4(aPosition,1); \n" +
+            "   vTextureCoord = aTexCoor;\n" +
+            "}                      "
+;
 
     /**
      * 顶点着色器（Vertex Shader）：用来渲染形状顶点的OpenGL ES代码
@@ -51,6 +70,10 @@ public class Shader {
         return loadShader(GLES20.GL_VERTEX_SHADER, CUBE_MESH_VERTEX_SHADER);
     }
 
+    public static int getVertexShader(String shaderCode) {
+        return loadShader(GLES20.GL_VERTEX_SHADER, shaderCode);
+    }
+
     /**
      * 片段着色器（Fragment Shader）：使用颜色或纹理渲染形状表面的OpenGL ES代码。
      *
@@ -58,6 +81,10 @@ public class Shader {
      */
     public static int getFragmentShader() {
         return loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode);
+    }
+
+    public static int getFragmentShader(String shaderCode) {
+        return loadShader(GLES20.GL_FRAGMENT_SHADER, shaderCode);
     }
 
 
